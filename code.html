@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Usine de Farine GM de Paris</title>
+  <link rel="stylesheet" href="gestion.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Tableau de Bord</h2>
+    <a onclick="showSection('accueil', this)" class="active-link">🏠 Accueil</a>
+    <a onclick="showSection('produits', this)">📦 Produits</a>
+    <a onclick="showSection('commandes', this)">🛒 Commandes</a>
+    <a onclick="showSection('fournisseurs', this)">🚚 Fournisseurs</a>
+    <a onclick="showSection('utilisateurs', this)">👤 Utilisateurs</a>
+    <a onclick="showSection('corbeille', this)">🗑️ Corbeille</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Accueil -->
+    <section id="accueil" class="active">
+      <h4>Usine de fabrication de farine Grand Moulin de Paris</h4>
+      <p id="resume"></p> <!-- Nouveau résumé affichant la valeur du stock -->
+      <div class="row text-center dashboard-cards">
+        <div class="col card">
+          <h6>Produits</h6>
+          <p id="countProduits">0</p>
+        </div>
+        <div class="col card">
+          <h6>Commandes</h6>
+          <p id="countCommandes">0</p>
+        </div>
+        <div class="col card">
+          <h6>Fournisseurs</h6>
+          <p id="countFournisseurs">0</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produits -->
+    <section id="produits">
+      <h2>Ajouter un Produit</h2>
+      <form id="produitForm" class="row g-2">
+        <input type="text" id="produitNom" class="form-control" placeholder="Nom" required>
+        <input type="number" id="produitQuantite" class="form-control" placeholder="Quantité" required>
+        <input type="number" id="produitPrix" class="form-control" placeholder="Prix (€)" step="0.01" required>
+        
+        <!-- Sélectionner le type (Entrée/Sortie) -->
+        <select id="produitType" class="form-control" required>
+          <option value="">Sélectionnez le type</option>
+          <option value="Entrée">Entrée</option>
+          <option value="Sortie">Sortie</option>
+        </select>
+
+        <button type="submit" class="btn btn-success">Ajouter Produit</button>
+      </form>
+      <input type="text" id="rechercheProduit" class="form-control mt-3" placeholder="🔎 Rechercher un produit...">
+      <table class="table mt-3">
+        <thead>
+          <tr><th>Nom</th><th>Quantité</th><th>Prix</th><th>Type</th><th>Date</th><th>Action</th></tr>
+        </thead>
+        <tbody id="listeProduits"></tbody>
+      </table>
+    </section>
+
+    <!-- Commandes -->
+    <section id="commandes">
+      <h2>Ajouter une Commande</h2>
+      <form id="commandeForm" class="row g-2">
+        <input type="text" id="commandeProduit" class="form-control" placeholder="Produit" required>
+        <input type="number" id="commandeQuantite" class="form-control" placeholder="Quantité" required>
+        <button type="submit" class="btn btn-primary">Ajouter Commande</button>
+      </form>
+      <input type="text" id="rechercheCommande" class="form-control mt-3" placeholder="🔎 Rechercher une commande...">
+      <table class="table mt-3">
+        <thead>
+          <tr><th>Produit</th><th>Quantité</th><th>Action</th></tr>
+        </thead>
+        <tbody id="listeCommandes"></tbody>
+      </table>
+    </section>
+
+    <!-- Fournisseurs -->
+    <section id="fournisseurs">
+      <h2>Ajouter un Fournisseur</h2>
+      <form id="fournisseurForm" class="row g-2">
+        <input type="text" id="fournisseurNom" class="form-control" placeholder="Nom" required>
+        <input type="text" id="fournisseurProduit" class="form-control" placeholder="Produit" required>
+        <input type="text" id="fournisseurContact" class="form-control" placeholder="Contact" required>
+        <input type="text" id="fournisseurAdresse" class="form-control" placeholder="Adresse" required>
+        <button type="submit" class="btn btn-success">Ajouter Fournisseur</button>
+      </form>
+      <input type="text" id="rechercheFournisseur" class="form-control mt-3" placeholder="🔎 Rechercher un fournisseur...">
+      <table class="table mt-3">
+        <thead>
+          <tr><th>Nom</th><th>Produit</th><th>Contact</th><th>Adresse</th><th>Action</th></tr>
+        </thead>
+        <tbody id="listeFournisseurs"></tbody>
+      </table>
+    </section>
+
+    <!-- Utilisateurs -->
+    <section id="utilisateurs">
+      <h2>Connexion Utilisateur</h2>
+      <form id="adminLoginForm" class="w-50 mx-auto">
+        <input type="text" id="adminNom" class="form-control mb-2" placeholder="Nom" required>
+        <input type="email" id="adminEmail" class="form-control mb-2" placeholder="Email" required>
+        <input type="password" id="adminPassword" class="form-control mb-2" placeholder="Mot de passe" required>
+        <button type="submit" class="btn btn-primary w-100">Connexion</button>
+      </form>
+      <table class="table mt-3">
+        <thead>
+          <tr><th>Nom</th><th>Email</th><th>Action</th></tr>
+        </thead>
+        <tbody id="listeUtilisateurs"></tbody>
+      </table>
+    </section>
+
+    <!-- Corbeille -->
+    <section id="corbeille">
+      <h2>Corbeille</h2>
+      <table class="table mt-3">
+        <thead>
+          <tr><th>Type</th><th>Données</th></tr>
+        </thead>
+        <tbody id="corbeilleTable"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- Modal de modification -->
+  <div class="modal fade" id="modalModifier" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="modalModifierForm" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Modifier l'élément</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="modifNom" class="form-control mb-2" placeholder="Nom">
+          <input type="number" id="modifQuantite" class="form-control mb-2" placeholder="Quantité">
+          <input type="number" id="modifPrix" class="form-control mb-2" placeholder="Prix (€)" step="0.01">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="gestion.js"></script>
+</body>
+</html>
