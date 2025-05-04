@@ -1,227 +1,279 @@
 // gestion.js
 
-// Navigation entre sections
-function showSection(id, link) {
-  document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active-link"));
-  document.getElementById(id).classList.add("active");
-  if (link) link.classList.add("active-link");
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebarLinks = document.querySelectorAll(".sidebar a");
+  const sections = document.querySelectorAll("section");
+  const forms = {
+    produit: document.getElementById("produitForm"),
+    commande: document.getElementById("commandeForm"),
+    fournisseur: document.getElementById("fournisseurForm"),
+    utilisateur: document.getElementById("adminLoginForm")
+  };
 
-// Afficher un toast (succès ou erreur)
-function showToast(message, type = "success") {
-  const toast = document.createElement("div");
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
+  if (!localStorage.getItem("produits")) localStorage.setItem("produits", "[]");
+  if (!localStorage.getItem("commandes")) localStorage.setItem("commandes", "[]");
+  if (!localStorage.getItem("fournisseurs")) localStorage.setItem("fournisseurs", "[]");
+  if (!localStorage.getItem("utilisateurs")) localStorage.setItem("utilisateurs", "[]");
+  if (!localStorage.getItem("corbeille")) localStorage.setItem("corbeille", "[]");
 
-// Générer la date actuelle
-function getCurrentDateTime() {
-  const now = new Date();
-  return now.toLocaleString(); // Donne date + heure
-}
-
-// Mettre à jour le dashboard et le résumé
-function updateDashboard() {
-  const produits = document.getElementById("listeProduits").childElementCount;
-  const commandes = document.getElementById("listeCommandes").childElementCount;
-  const fournisseurs = document.getElementById("listeFournisseurs").childElementCount;
-  const valeurStock = calculerValeurStock();
-
-  document.getElementById("countProduits").textContent = produits;
-  document.getElementById("countCommandes").textContent = commandes;
-  document.getElementById("countFournisseurs").textContent = fournisseurs;
-
-  document.getElementById("resume").innerHTML = `
-    📦 Produits en stock : ${produits}<br>
-    🛒 Commandes enregistrées : ${commandes}<br>
-    🚚 Fournisseurs disponibles : ${fournisseurs}<br><br>
-    💰 Valeur totale du stock : ${valeurStock} €
-  `;
-}
-
-// Calculer la valeur totale du stock
-function calculerValeurStock() {
-  let total = 0;
-  document.querySelectorAll("#listeProduits tr").forEach(tr => {
-    const quantite = parseInt(tr.children[1].textContent);
-    const prixTexte = tr.children[2].textContent.replace("€", "").trim();
-    const prix = parseFloat(prixTexte);
-    if (!isNaN(quantite) && !isNaN(prix)) {
-      total += quantite * prix;
-    }
+  sidebarLinks.forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      const target = link.dataset.section;
+      sidebarLinks.forEach(l => l.classList.remove("active-link"));
+      link.classList.add("active-link");
+      sections.forEach(sec => sec.classList.toggle("active", sec.id === target));
+      if (target === "accueil") updateDashboard();
+      refreshAllTables();
+    });
   });
-  return total.toFixed(2); // 2 chiffres après la virgule
-}
 
-// Vérification du stock (quantité < 10)
-function checkStock(nom, quantite) {
-  if (quantite < 10) {
-    showToast(`Stock faible pour ${nom}!`, "error");
-    ajouterCommandeAutomatique(nom);
+  const getData = key => JSON.parse(localStorage.getItem(key) || "[]");
+  const setData = (key, arr) => localStorage.setItem(key, JSON.stringify(arr));
+  const showToast = (msg, isError = false) => {
+    const t = document.createElement("div");
+    t.className = `toast ${isError ? "toast-error" : "toast-success"}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  };
+
+  function updateDashboard() {
+    const produits = getData("produits");
+    const commandes = getData("commandes");
+    const fournisseurs = getData("fournisseurs");
+
+    document.getElementById("countProduits").textContent = produits.length;
+    document.getElementById("countCommandes").textContent = commandes.length;
+    document.getElementById("countFournisseurs").textContent = fournisseurs.length;
+
+    const valeur = produits.reduce((sum, p) => sum + p.quantite * p.prix, 0).toFixed(2);
+    const stock = produits.reduce((sum, p) => sum + p.quantite, 0);
+    document.querySelectorAll("#accueil p.stat").forEach(el => el.remove());
+    appendStat(`Valeur totale du stock : ${valeur} €`);
+    appendStat(`Stock total disponible : ${stock}`);
+    
+
+    const hors = produits.filter(p => p.quantite < 5 || p.quantite > 1000);
+    if (hors.length) {
+      appendStat(`⚠️ Produits hors seuil : ${hors.map(p => p.nom + "(" + p.quantite + ")").join(", ")}`, true);
+    }
   }
-}
+   
+  const appendStat = (text, warning = false) => {
+    const p = document.createElement("p");
+    p.classList.add("stat");
+    p.style.color = warning ? "red" : "green";
+    p.textContent = text;
+    document.getElementById("accueil").appendChild(p);
+  };
 
-// Ajouter automatiquement une commande
-function ajouterCommandeAutomatique(produit) {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td>${produit}</td>
-    <td>50</td>
-    <td>
-      <button class="btn btn-warning btn-sm btn-modifier">✏️</button>
-      <button class="btn btn-danger btn-sm btn-supprimer">🗑️</button>
-    </td>`;
-  document.getElementById("listeCommandes").appendChild(tr);
-  updateDashboard();
-}
+  function buildTable(containerId, data, columns, options = {}) {
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = "";
+    if (!data.length) {
+      cont.innerHTML = "<p>Aucune donnée.</p>";
+      return;
+    }
+    const tbl = document.createElement("table");
+    tbl.className = "table table-bordered";
 
-// Attacher suppression avec confirmation
-function attachDelete(btn, row, type) {
-  btn.addEventListener("click", () => {
-    if (confirm(`Voulez-vous vraiment supprimer cette ${type} ?`)) {
-      // Copier dans la corbeille
-      const data = Array.from(row.children).slice(0, -1).map(td => td.textContent).join(" | ");
+    const thead = document.createElement("thead"), trh = document.createElement("tr");
+    columns.forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col.label;
+      trh.appendChild(th);
+    });
+    if (options.actions) {
+      const th = document.createElement("th");
+      th.textContent = "Actions";
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    data.forEach((item, i) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${type}</td><td>${data}</td>`;
-      document.getElementById("corbeilleTable").appendChild(tr);
-
-      row.remove();
-      updateDashboard();
-      showToast(`${type} supprimé avec succès!`);
-    }
-  });
-}
-
-// Variables pour modification
-let currentRow, currentType;
-
-// Modification via modal
-document.getElementById("modalModifierForm")?.addEventListener("submit", function (e) {
-  e.preventDefault();
-  const nom = document.getElementById("modifNom").value;
-  const quantite = document.getElementById("modifQuantite").value;
-  const prix = document.getElementById("modifPrix")?.value;
-
-  if (currentRow) {
-    const cells = currentRow.querySelectorAll("td");
-    cells[0].textContent = nom;
-    if (quantite) cells[1].textContent = quantite;
-    if (prix !== undefined) cells[2].textContent = prix + "€";
+      columns.forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = item[col.key];
+        tr.appendChild(td);
+      });
+      if (options.actions) {
+        const td = document.createElement("td");
+        options.actions.forEach(act => {
+          const btn = document.createElement("button");
+          btn.className = act.class;
+          btn.textContent = act.label;
+          btn.addEventListener("click", () => act.onClick(i));
+          td.appendChild(btn);
+        });
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    cont.appendChild(tbl);
   }
 
-  bootstrap.Modal.getInstance(document.getElementById('modalModifier')).hide();
-  showToast(`${currentType} modifié avec succès!`);
-  updateDashboard();
-});
+  const supprimerItem = (type, i) => {
+    const arr = getData(type);
+    const removed = arr.splice(i, 1)[0];
+    setData(type, arr);
+    const corb = getData("Corbeille");
+    corb.push({ type, data: JSON.stringify(removed), date: new Date().toLocaleString() });
+    setData("Corbeille", corb);
+    showToast(`${type} supprimé`, true);
+    refreshAllTables();
+  };
 
-// Ajout d'élément
-function setupForm(formId, tableId, type) {
-  const form = document.getElementById(formId);
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const inputs = Array.from(form.querySelectorAll("input, select"));
-    const values = inputs.map(i => i.value);
-    const dateNow = getCurrentDateTime();
-
-    const tr = document.createElement("tr");
-
-    if (type === "Produit") {
-      tr.innerHTML = `
-        <td>${values[0]}</td>
-        <td>${values[1]}</td>
-        <td>${values[2]}€</td>
-        <td>${values[3]}</td>
-        <td>${dateNow}</td>
-        <td>
-          <button class="btn btn-warning btn-sm btn-modifier">✏️</button>
-          <button class="btn btn-danger btn-sm btn-supprimer">🗑️</button>
-        </td>`;
-
-      if (parseInt(values[1]) < 10) {
-        checkStock(values[0], parseInt(values[1]));
-      } else {
-        showToast(`${type} ajouté avec succès!`);
-      }
-
-    } else if (type === "Commande") {
-      tr.innerHTML = `
-        <td>${values[0]}</td>
-        <td>${values[1]}</td>
-        <td>
-          <button class="btn btn-warning btn-sm btn-modifier">✏️</button>
-          <button class="btn btn-danger btn-sm btn-supprimer">🗑️</button>
-        </td>`;
-      if (parseInt(values[1]) < 10) {
-        showToast(`Attention : quantité faible pour la commande de ${values[0]} !`, "error");
-      } else {
-        showToast(`${type} ajouté avec succès!`);
-      }
-    } else if (type === "Fournisseur") {
-      tr.innerHTML = `
-        <td>${values[0]}</td>
-        <td>${values[1]}</td>
-        <td>${values[2]}</td>
-        <td>${values[3]}</td>
-        <td>
-          <button class="btn btn-warning btn-sm btn-modifier">✏️</button>
-          <button class="btn btn-danger btn-sm btn-supprimer">🗑️</button>
-        </td>`;
-      showToast(`${type} ajouté avec succès!`);
-    } else if (type === "Utilisateur") {
-      tr.innerHTML = `
-        <td>${values[0]}</td>
-        <td>${values[1]}</td>
-        <td>
-          <button class="btn btn-warning btn-sm btn-modifier">✏️</button>
-          <button class="btn btn-danger btn-sm btn-supprimer">🗑️</button>
-        </td>`;
-      showToast(`${type} ajouté avec succès!`);
+  document.getElementById("viderCorbeille")?.addEventListener("click", () => {
+    if (confirm("Voulez-vous vraiment vider la corbeille ?")) {
+      setData("corbeille", []);
+      showToast("corbeille vidée");
+      refreshAllTables();
     }
+  });
 
-    // Attacher suppression et modification
-    attachDelete(tr.querySelector(".btn-supprimer"), tr, type);
-    tr.querySelector(".btn-modifier")?.addEventListener("click", () => {
-      currentRow = tr;
-      currentType = type;
-      const cells = tr.querySelectorAll("td");
-      document.getElementById("modifNom").value = cells[0].textContent;
-      document.getElementById("modifQuantite").value = cells[1]?.textContent;
-      if (cells[2]) {
-        document.getElementById("modifPrix").value = parseFloat(cells[2].textContent);
-      }
-      new bootstrap.Modal(document.getElementById('modalModifier')).show();
-    });
+  const modifierProduit = i => {
+    const produits = getData("produits");
+    const p = produits[i];
+    const nom = prompt("Nouveau nom :", p.nom);
+    const quantite = +prompt("Nouvelle quantité :", p.quantite);
+    const prix = +prompt("Nouveau prix :", p.prix);
+    const type = prompt("Type (entrée/sortie) :", p.type);
+    if (nom && !isNaN(quantite) && !isNaN(prix)) {
+      produits[i] = { ...p, nom, quantite, prix, type };
+      setData("produits", produits);
+      showToast("Produit modifié");
+      refreshAllTables();
+    }
+  };
 
-    document.getElementById(tableId).appendChild(tr);
-    form.reset();
+  function refreshAllTables() {
     updateDashboard();
-  });
-}
-
-// Rechercher dans un tableau
-function attachSearch(inputId, tableId) {
-  document.getElementById(inputId).addEventListener("input", (e) => {
-    const value = e.target.value.toLowerCase();
-    document.querySelectorAll(`#${tableId} tr`).forEach(tr => {
-      tr.style.display = tr.textContent.toLowerCase().includes(value) ? "" : "none";
+    buildTable("listeProduitsTable", getData("produits"), [
+      { key: "nom", label: "Produit" },
+      { key: "quantite", label: "Quantité" },
+      { key: "prix", label: "Prix (€)" },
+      { key: "type", label: "Type" },
+      { key: "date", label: "Date/Heure" }
+    ], {
+      actions: [
+        { label: "🖉 Modifier", class: "btn btn-sm btn-warning", onClick: modifierProduit },
+        { label: "🗑 Supprimer", class: "btn btn-sm btn-danger", onClick: i => supprimerItem("produits", i) }
+      ]
     });
+
+    buildTable("listeCommandesTable", getData("commandes"), [
+      { key: "produit", label: "Produit" },
+      { key: "quantite", label: "Quantité" },
+      { key: "date", label: "Date/Heure" }
+    ], {
+      actions: [
+        { label: "🗑 Supprimer", class: "btn btn-sm btn-danger", onClick: i => supprimerItem("commandes", i) }
+      ]
+    });
+
+    buildTable("listeFournisseurs", getData("fournisseurs"), [
+      { key: "nom", label: "Nom" },
+      { key: "produit", label: "Produit" },
+      { key: "contact", label: "Contact" },
+      { key: "adresse", label: "Adresse" },
+      { key: "date", label: "Date/Heure" }
+    ], {
+      actions: [
+        { label: "🗑 Supprimer", class: "btn btn-sm btn-danger", onClick: i => supprimerItem("fournisseurs", i) }
+      ]
+    });
+
+    buildTable("listeUtilisateursTable", getData("utilisateurs"), [
+      { key: "nom", label: "Nom" },
+      { key: "email", label: "Email" },
+      { key: "role", label: "Rôle" },
+      { key: "date", label: "Date/Heure" }
+    ], {
+      actions: [
+        { label: "🗑 Supprimer", class: "btn btn-sm btn-danger", onClick: i => supprimerItem("utilisateurs", i) }
+      ]
+    });
+
+    buildTable("listeCorbeille", getData("corbeille"), [
+      { key: "type", label: "Type" },
+      { key: "data", label: "Données supprimées" },
+      { key: "date", label: "Date suppression" }
+    ]);
+  }
+
+  forms.produit.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(forms.produit);
+    const p = {
+      nom: f.get("nom"),
+      quantite: +f.get("quantite"),
+      prix: +f.get("prix"),
+      type: f.get("type"),
+      date: new Date().toLocaleString()
+    };
+    const arr = getData("produits");
+    arr.push(p);
+    setData("produits", arr);
+    showToast("Produit ajouté");
+    forms.produit.reset();
+    refreshAllTables();
   });
-}
 
-// Initialisation
-window.addEventListener("DOMContentLoaded", () => {
-  setupForm("produitForm", "listeProduits", "Produit");
-  setupForm("commandeForm", "listeCommandes", "Commande");
-  setupForm("fournisseurForm", "listeFournisseurs", "Fournisseur");
-  setupForm("adminLoginForm", "listeUtilisateurs", "Utilisateur");
+  forms.commande.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(forms.commande);
+    const cmd = {
+      produit: f.get("produit"),
+      quantite: +f.get("quantite"),
+      date: new Date().toLocaleString()
+    };
+    const arr = getData("commandes");
+    arr.push(cmd);
+    setData("commandes", arr);
+    showToast("Commande ajoutée");
+    forms.commande.reset();
+    refreshAllTables();
+  });
 
-  attachSearch("rechercheProduit", "listeProduits");
-  attachSearch("rechercheCommande", "listeCommandes");
-  attachSearch("rechercheFournisseur", "listeFournisseurs");
+  forms.fournisseur.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(forms.fournisseur);
+    const prov = {
+      nom: f.get("nom"),
+      produit: f.get("produit"),
+      contact: f.get("contact"),
+      adresse: f.get("adresse"),
+      date: new Date().toLocaleString()
+    };
+    const arr = getData("fournisseurs");
+    arr.push(prov);
+    setData("fournisseurs", arr);
+    showToast("Fournisseur ajouté");
+    forms.fournisseur.reset();
+    refreshAllTables();
+  });
 
-  updateDashboard();
-  showSection("accueil");
+  forms.utilisateur.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(forms.utilisateur);
+    const user = {
+      nom: f.get("nom"),
+      email: f.get("email"),
+      role: "Admin",
+      date: new Date().toLocaleString()
+    };
+    const arr = getData("utilisateurs");
+    arr.push(user);
+    setData("utilisateurs", arr);
+    showToast("Utilisateur ajouté");
+    forms.utilisateur.reset();
+    refreshAllTables();
+  });
+
+  refreshAllTables();
 });

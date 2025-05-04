@@ -5,204 +5,167 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tableau de Bord - Usine de Farine</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="gestion.CSS">
+  <link rel="stylesheet" href="gestion.css" />
 </head>
 <body>
   <div class="sidebar">
     <h2>Tableau de Bord</h2>
-    <a onclick="showSection('accueil', this)" class="active-link">🏠 Accueil</a>
-    <a onclick="showSection('produits', this)">📦 Ajout Produits</a>
-    <a onclick="showSection('listeProduits', this)">📋 Liste des Produits</a>
-    <a onclick="showSection('commandes', this)">📝 Ajout Commandes</a>
-    <a onclick="showSection('listeCommandes', this)">📋 Liste des Commandes</a>
-    <a onclick="showSection('fournisseurs', this)">🚚 Ajout Fournisseurs</a>
-    <a onclick="showSection('listeFournisseurs', this)">📋 Liste des Fournisseurs</a>
-    <a onclick="showSection('utilisateurs', this)">👤 Connexion Utilisateur</a>
-    <a onclick="showSection('listeUtilisateurs', this)">📋 Liste des Utilisateurs</a>
-    <a onclick="showSection('corbeille', this)">🗑️ Corbeille</a>
+    <a href="#" class="active-link" data-section="accueil">🏠 Accueil</a>
+    <a href="#" data-section="produits">📦 Ajout/Sortir Produits</a>
+    <a href="#" data-section="listeProduits">📋 Liste des Produits</a>
+    <a href="#" data-section="commandes">📝 Ajout Commandes</a>
+    <a href="#" data-section="listeCommandes">📋 Liste des Commandes</a>
+    <a href="#" data-section="fournisseurs">🚚 Ajout Fournisseurs</a>
+    <a href="#" data-section="listeFournisseurs">📋 Liste des Fournisseurs</a>
+    <a href="#" data-section="utilisateurs">👤 Connexion Utilisateur</a>
+    <a href="#" data-section="listeUtilisateurs">📋 Liste des Utilisateurs</a>
+    <a href="#" data-section="corbeille">🗑️ Corbeille</a>
   </div>
 
   <div class="content">
+    <!-- Accueil -->
     <section id="accueil" class="active">
-      <h1>Accueil</h1>
+      <h1>🏠Accueil</h1>
       <p>Bienvenue dans le tableau de bord de gestion des stocks de l'usine de fabrication de farine.</p>
       <div class="row">
-        <div class="col-md-4"><div class="card text-center"><div class="card-body"><h5>Produits</h5><p id="countProduits">0</p></div></div></div>
-        <div class="col-md-4"><div class="card text-center"><div class="card-body"><h5>Commandes</h5><p id="countCommandes">0</p></div></div></div>
-        <div class="col-md-4"><div class="card text-center"><div class="card-body"><h5>Fournisseurs</h5><p id="countFournisseurs">0</p></div></div></div>
+        <div class="col-md-4">
+          <div class="card text-center"><div class="card-body"><h5>📦Produits</h5><p id="countProduits">0</p></div></div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center"><div class="card-body"><h5>📝Commandes</h5><p id="countCommandes">0</p></div></div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center"><div class="card-body"><h5>🚚Fournisseurs</h5><p id="countFournisseurs">0</p></div></div>
+        </div>
       </div>
     </section>
 
-    <section id="produits" class="my-5">
+    <!-- Ajout/Sortie Produits -->
+    <section id="produits">
       <h2>Ajouter ou Sortir un Produit</h2>
       <form id="produitForm" class="mb-4">
         <div class="row g-2">
-          <div class="col">
-            <input type="text" id="produitNom" class="form-control" placeholder="Nom du produit" required>
-          </div>
-          <div class="col">
-            <input type="number" id="produitQuantite" class="form-control" placeholder="Quantité" required>
-          </div>
-          <div class="col">
-            <input type="number" step="0.01" id="produitPrix" class="form-control" placeholder="Prix unitaire (€)" required>
-          </div>
-          <div class="col">
-            <select id="produitType" class="form-select" required>
-              <option value="">Type</option>
-              <option value="entrée">Entrée</option>
-              <option value="sortie">Sortie</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-success">Valider</button>
-          </div>
-        </div>
-      </form>
-
-      <h3>Mouvements de Produits</h3>
-      <div class="table-responsive">
-        <table id="tableMouvements" class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Produit</th>
-              <th>Quantité</th>
-              <th>Prix (€)</th>
-              <th>Valeur Totale (€)</th>
-              <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="commandes" class="my-5">
-      <h2>Ajouter une Commande</h2>
-      <form id="commandeForm" class="mb-4">
-        <div class="row">
-          <div class="col"><input type="text" class="form-control" id="commandeProduit" placeholder="Nom du produit" required></div>
-          <div class="col"><input type="number" class="form-control" id="commandeQuantite" placeholder="Quantité" required></div>
-          <div class="col-auto"><button class="btn btn-primary">Ajouter</button></div>
-        </div>
-      </form>
-
-      <h3>Liste des Commandes</h3>
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead><tr><th>Produit</th><th>Quantité</th></tr></thead>
-          <tbody id="tableCommandes"></tbody>
-      </div>
-    </section>
-
-    <section id="fournisseurs" class="my-5">
-      <h2>Ajouter un Fournisseur</h2>
-      <form id="fournisseurForm" class="mb-4">
-        <div class="mb-3">
-          <label for="fournisseurNom" class="form-label">Nom du fournisseur</label>
-          <input type="text" class="form-control" id="fournisseurNom" placeholder="Nom du fournisseur" required>
-        </div>
-        <div class="mb-3">
-          <label for="fournisseurProduit" class="form-label">Produit fourni</label>
-          <input type="text" class="form-control" id="fournisseurProduit" placeholder="Produit fourni" required>
-        </div>
-        <div class="mb-3">
-          <label for="fournisseurContact" class="form-label">Contact</label>
-          <input type="text" class="form-control" id="fournisseurContact" placeholder="Email ou téléphone" required>
-        </div>
-        <div class="mb-3">
-          <label for="fournisseurAdresse" class="form-label">Adresse</label>
-          <input type="text" class="form-control" id="fournisseurAdresse" placeholder="Adresse du fournisseur" required>
-        </div>
-        <button type="submit" class="btn btn-success w-100">Ajouter le fournisseur</button>
-      </form>
-
-      <h3 class="text-center">Liste des Fournisseurs</h3>
-      <div class="table-responsive">
-        <table id="tableFournisseurs" class="table table-bordered">
-          <thead>
-            <tr><th>Nom</th><th>Produit</th><th>Contact</th><th>Adresse</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="utilisateurs" class="my-5">
-      <h2>Connexion Admin</h2>
-      <form id="adminLoginForm" class="w-50 mx-auto border p-4 rounded shadow bg-light">
-        <div class="mb-3">
-          <label for="adminNom" class="form-label">Nom</label>
-          <input type="text" class="form-control" id="adminNom" placeholder="Entrez votre nom" required>
-        </div>
-        <div class="mb-3">
-          <label for="adminEmail" class="form-label">Email</label>
-          <input type="email" class="form-control" id="adminEmail" placeholder="admin@example.com" required>
-        </div>
-        <div class="mb-3">
-          <label for="adminPassword" class="form-label">Mot de passe</label>
-          <input type="password" class="form-control" id="adminPassword" placeholder="Mot de passe" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
-
-        <div class="mt-3 text-center">
-          <p>Vous n'avez pas encore de compte ? <a href="#" id="inscriptionLink">S'inscrire</a></p>
+          <div class="col"><input type="text" id="produitNom" name="nom" class="form-control" placeholder="Nom du produit" required></div>
+          <div class="col"><input type="number" id="produitQuantite" name="quantite" class="form-control" placeholder="Quantité" required></div>
+          <div class="col"><input type="number" step="0.01" id="produitPrix" name="prix" class="form-control" placeholder="Prix unitaire (€)" required></div>
+          <div class="col"><select id="produitType" name="type" class="form-select" required><option value="">Type</option><option value="entrée">Entrée</option><option value="sortie">Sortie</option></select></div>
+          <div class="col-auto"><button type="submit" class="btn btn-success">Valider</button></div>
         </div>
       </form>
     </section>
 
-    <section id="listeProduits" class="my-5">
+    <!-- Liste Produits -->
+    <section id="listeProduits">
       <h2>📋 Liste des Produits</h2>
       <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th><th>Action</th></tr></thead>
-          <tbody id="tableProduits"></tbody>
-        </table>
+        <table class="table table-bordered"><thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th><th>Action</th></tr></thead><tbody id="listeProduitsTable"></tbody></table>
       </div>
     </section>
 
-    <section id="listeCommandes" class="my-5">
-      <h2>📋 Liste des Commandes</h2>
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead><tr><th>Produit</th><th>Quantité</th><th>Action</th></tr></thead>
-          <tbody id="listeCommandesTable"></tbody>
-        </table>
+    <!-- Ajout Commandes -->
+    <section id="commandes">
+      <h2>Ajouter une Commande</h2>
+      <form id="commandeForm" class="mb-4 row g-2">
+        <div class="col"><input type="text" id="commandeProduit" name="produit" class="form-control" placeholder="Nom du produit" required></div>
+        <div class="col"><input type="number" id="commandeQuantite" name="quantite" class="form-control" placeholder="Quantité" required></div>
+        <div class="col-auto"><button type="submit" class="btn btn-primary">Ajouter</button></div>
+      </form>
+    </section>
+      <!-- Liste Commande -->
+       <Section id="listeCommandes">
+      <h3>📋 Liste des Commandes</h3>
+      <div class="table-responsive">                                                                                          
+        <table class="table table-bordered"><thead><tr><th>Produit</th><th>Quantité</th><th>Action</th></tr></thead><tbody id="listeCommandesTable"></tbody></table>
       </div>
     </section>
 
-    <section id="listeFournisseurs"  class="my-5">
-      <h2>📋 Liste des Fournisseurs</h2>
-      <div class="table-responsive" >
-        <table class="table table-bordered">
-          <thead><tr><th>Nom</th><th>Produit</th><th>Contact</th><th>Adresse</th><th>Action</th></tr></thead>
-          <tbody id="listeFournisseursTable"></tbody>
-        </table>
-      </div>
+    <!-- Ajout Fournisseurs -->
+    <section id="fournisseurs">
+      <h2>Ajouter un Fournisseur</h2>
+      <form id="fournisseurForm" class="mb-4">
+        <div class="mb-3"><label for="fournisseurNom" class="form-label">Nom</label><input type="text" id="fournisseurNom" name="nom" class="form-control" placeholder="Nom du fournisseur" required></div>
+        <div class="mb-3"><label for="fournisseurProduit" class="form-label">Produit</label><input type="text" id="fournisseurProduit" name="produit" class="form-control" placeholder="Produit fourni" required></div>
+        <div class="mb-3"><label for="fournisseurContact" class="form-label">Contact</label><input type="text" id="fournisseurContact" name="contact" class="form-control" placeholder="Email ou téléphone" required></div>
+        <div class="mb-3"><label for="fournisseurAdresse" class="form-label">Adresse</label><input type="text" id="fournisseurAdresse" name="adresse" class="form-control" placeholder="Adresse du fournisseur" required></div>
+        <button type="submit" class="btn btn-success w-100">Ajouter le fournisseur</button>
+      </form>
     </section>
-
-    <section id="listeUtilisateurs" class="my-5">
-      <h2>📋 Liste des Utilisateurs</h2>
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead><tr><th>Nom</th><th>Email</th><th>Role</th><th>Action</th></tr></thead>
-          <tbody id="listeUtilisateursTable"></tbody>
-        </table>
-      </div>
-    </section>
-    <section id="corbeille" class="my-5">
-      <h2>🗑️ Corbeille</h2>
-      <div class="table-responsive">
+    <!-- Liste Produits -->
+    <Section id="listeFournisseurs">
+      <h3>📋 Liste des Fournisseurs</h3>
+        <div class="table-responsive">
         <table class="table table-bordered">
           <thead>
-            <tr><th>Type</th><th>Données supprimées</th></tr>
+            <tr>
+        <th>Nom</th>
+        <th>Produit</th>
+        <th>Contact</th>
+        <th>Adresse</th>
+        <th>Action</th>
+            </tr>
           </thead>
-          <tbody id="tableCorbeilleGenerale"></tbody>
+    <tbody id="listeFournisseursTable"></tbody>
+    </table>
+  </div>
+ </section>
+
+    <!-- Utilisateurs -->
+    <section id="utilisateurs">
+      <h2>Connexion Admin</h2>
+      <form id="adminLoginForm" class="w-50 mx-auto border p-4 rounded shadow bg-light">
+        <div class="mb-3"><label for="adminNom" class="form-label">Nom</label><input type="text" id="adminNom" class="form-control" placeholder="Entrez votre nom" required></div>
+        <div class="mb-3"><label for="adminEmail" class="form-label">Email</label><input type="email" id="adminEmail" class="form-control" placeholder="admin@example.com" required></div>
+        <div class="mb-3"><label for="adminPassword" class="form-label">Mot de passe</label><input type="password" id="adminPassword" class="form-control" placeholder="Mot de passe" required></div>
+        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+        <div class="mt-3 text-center"><p>Vous n'avez pas de compte ? <a href="#" id="inscriptionLink">S'inscrire</a></p></div>
+      </form>
+    </section>
+
+    <!-- Liste Utilisateurs -->
+    <section id="listeUtilisateurs">
+      <h2>📋 Liste des Utilisateurs</h2>
+      <div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Nom</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody id="listeUtilisateursTable"></tbody></table></div>
+    </section>
+
+    <!-- Corbeille -->
+    <section id="corbeille" class="my-4">
+      <h2>🗑️ Corbeille</h2>
+    
+      <div class="mb-3">
+        <button id="viderCorbeille" class="btn btn-danger me-2">Vider la corbeille</button>
+        <button id="restaurerCorbeille" class="btn btn-success">Restaurer la corbeille</button>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Type</th>
+              <th>Données supprimées</th>
+              <th>Date de suppression</th>
+            </tr>
+          </thead>
+          <tbody id="listeCorbeille">
+            <!-- Les entrées de la corbeille seront injectées ici -->
+          </tbody>
         </table>
       </div>
     </section>
+    
+      </div>
+
+  <!-- Modal de modification -->
+  <div class="modal fade" id="modalModifier" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="modalModifierForm">
+        <div class="modal-header"><h5 class="modal-title">Modifier</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="text" id="modifNom" class="form-control mb-2" placeholder="Nom" required><input type="number" id="modifQuantite" class="form-control mb-2" placeholder="Quantité"><input type="number" id="modifPrix" class="form-control mb-2" placeholder="Prix (€)"></div>
+        <div class="modal-footer"><button class="btn btn-primary">Enregistrer</button></div>
+      </form>
+    </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="gestion.js"></script>
 </body>
 </html>

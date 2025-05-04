@@ -1,5 +1,3 @@
-/* gestion.css */
-
 /* Reset and base styles */
 body {
   display: flex;
@@ -37,6 +35,11 @@ body {
   border-radius: 5px;
 }
 
+.sidebar a:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
 /* Content */
 .content {
   flex: 1;
@@ -57,12 +60,21 @@ section.active {
 }
 
 /* Dashboard cards */
+.dashboard-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .dashboard-cards .card {
   background: #0bd82e;
   padding: 20px;
-  margin: 10px;
+  flex: 1 1 200px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  color: white;
+  font-weight: bold;
+  text-align: center;
 }
 
 /* Tables */
@@ -85,11 +97,33 @@ th {
 }
 
 /* Form Controls */
+form {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 input, select, button {
   width: 100%;
   padding: 10px;
   margin-top: 8px;
   margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #45a049;
 }
 
 /* Toasts */
@@ -111,6 +145,11 @@ input, select, button {
 
 .toast-error {
   background-color: #dc3545;
+}
+
+/* Modal override */
+.modal-content input {
+  margin-bottom: 10px;
 }
 
 /* Responsive */
@@ -136,6 +175,10 @@ input, select, button {
     text-align: center;
     font-size: 14px;
     padding: 10px;
+  }
+
+  .dashboard-cards {
+    flex-direction: column;
   }
 
   .dashboard-cards .card {
